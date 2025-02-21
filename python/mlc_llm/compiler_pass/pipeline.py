@@ -24,6 +24,7 @@ from .attach_support_info import (
     AttachMemoryPlanAttr,
     AttachPipelineParallelStages,
     AttachVariableBounds,
+    AttachDispatchCuBLASAttr,
 )
 from .blas_dispatch import BLASDispatch
 from .clean_up_tir_attrs import CleanUpTIRAttrs
@@ -119,7 +120,8 @@ def _mlc_llm_pipeline(  # pylint: disable=too-many-arguments
                 _LogProgress("Running TVM Relax graph-level optimizations"),
                 FuseFTDequantizeEpilogue(),
                 FuseDequantizeTranspose(),
-                BLASDispatch(target) if cublas_gemm else tvm.transform.Sequential([]),
+                AttachDispatchCuBLASAttr(),
+                # BLASDispatch(target) if cublas_gemm else tvm.transform.Sequential([]),
                 (
                     FuseAddRMSNorm(target=target)
                     if target.kind.name != "llvm"

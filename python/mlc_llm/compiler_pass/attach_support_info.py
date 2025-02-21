@@ -98,3 +98,19 @@ class AttachPipelineParallelStages:  # pylint: disable=too-few-public-methods
             mod[g_var] = func.with_attr("pipeline_parallel_stages", self.pipeline_parallel_shards)
 
         return mod
+
+
+@tvm.transform.module_pass(opt_level=0, name="AttachDispatchCuBLASAttr")
+class AttachDispatchCuBLASAttr:
+    """Attach skip attribute to dispatch to CuBLAS"""
+
+    def transform_module(self, mod: IRModule, _ctx: tvm.transform.PassContext) -> IRModule:
+        """Entrypoint"""
+        for g_var, func in mod.functions_items():
+            func_name = g_var.name_hint           
+            if "decode" in func_name or "batch" not in func_name:
+                continue
+            if isinstance(func, relax.Function):
+                mod[g_var] = func.with_attr("relax.backend.blas_dispatch", True)
+        
+        return mod

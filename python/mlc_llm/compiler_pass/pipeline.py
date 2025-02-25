@@ -121,7 +121,7 @@ def _mlc_llm_pipeline(  # pylint: disable=too-many-arguments
                 FuseFTDequantizeEpilogue(),
                 FuseDequantizeTranspose(),
                 AttachDispatchCuBLASAttr(),
-                # BLASDispatch(target) if cublas_gemm else tvm.transform.Sequential([]),
+                # BLASDispatch(target) if cublas_gemm else tvm.transform.Sequential([]), TODO: Obsolete 
                 (
                     FuseAddRMSNorm(target=target)
                     if target.kind.name != "llvm"
@@ -133,6 +133,7 @@ def _mlc_llm_pipeline(  # pylint: disable=too-many-arguments
                 _LogProgress("Lowering to TVM TIR kernels"),
                 tvm.relax.backend.DispatchSampling(),
                 tvm.relax.backend.DispatchSortScan(),
+                tvm.relax.transform.BLASDispatch(target),
                 tvm.relax.transform.LegalizeOps(),
                 tvm.relax.transform.AnnotateTIROpPattern(),
                 tvm.relax.transform.FoldConstant(),
